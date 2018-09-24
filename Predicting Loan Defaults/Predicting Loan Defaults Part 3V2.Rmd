@@ -1,0 +1,254 @@
+---
+title: "DS705 Final Project - Predicting Loan Defaults"
+author: "Pete Kelley"
+date: "Aug 17, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE) # , eval=FALSE)
+
+# The source code is here
+source('Project_Source.R') 
+
+```
+```{r include=FALSE}
+percentBadRej[6,which.max(profit_table[6,])]
+```
+
+
+## Section 1 - Executive Summary
+
+This report analyzes the creating and fine-tuning of a generalized linear model to maximize profit for the personal loan department. Eight models were created and compared to each other with measures such as prediction accuracy, maximum profit and other standard statistical measures of model fitness.
+
+Data preparation included limiting input variables to only those available at the time a loan application was submitted, which would allow for partially or completely automating the loan approval process. The data was also evaluated and, where appropriate, normalized to reduce the influence of extreme values. Finally, data was converted into more useful forms such as the text string of \"5 years" into the number 5 so it would be treated as part of a scale rather than as a label.
+
+The results of the model were impressive and showed that the algorithm significantly improved the personal loan department profitability by limiting the number of unprofitable loan approvals.
+
+Of the models, the best performing one increased the portfolio profit by 14 fold over the current process (\$0.26M to $3.7M). Even after such a significant improvement, there is still more that can be done to maximize loan portfolio profitability. A perfect model would produce over 300% more profit by rejecting all bad loans and approving all good ones. The final model tuned for profit maximization using a threshold score of  .73, that rejects 56% of bad loans and approves 78% of good loans.
+
+#### Recommendations 
+
+*  Use this algorithm to make automated accept or reject decisions for personal loans, allowing some discretion with accountability to loan officers when they go against the algorithm\'s suggestions.
+
+*  Conduct a follow-up study to determine if other methods or predictors do an even better job of differentiating good and bad loan applications.
+
+A limitation of the scope of this project was that only linear models were used to predict if a loan should be approved or rejected; there may be other more effective models that would further maximize profit potential and they should be investigated.
+
+
+## Section 2 - Introduction
+This study uses a dataset of 30 variables across 50,000 loans to create a predictive model to help a bank identify which applicants are likely to default on their loans. The dataset was not ready to be evaluated and needed to be prepared for modeling. This paper will review data preparation, building and optimizing the model, and finally summarizing the results. 
+
+
+## Section 3 - Preparing and Cleaning the Data
+
+The following was done to prepare the data for processing:
+
+*  Added a column for the response variable
+  
+  + status column values of “Fully Paid” mapped to “Good”
+  
+  + status column values of “Charged Off” mapped to “Bad”
+
+*  Removed rows that did not fit the parameters for a valid response variable
+
+  + Valid response rows were those that had reached end of life and were either paid in full or written off; all other rows were deleted
+
+*  Removed columns that are unknowable at the time a loan was requested
+
+  + Grade of the loan application, which is a result of the loan application decision  process
+
+    +	Status of the loan, this was mapped to the response variable
+
+*  	Kept but not used to create a model, only used to fine tune profitability
+
+  + Rate of the loan, which is a result of the loan application decision process
+
+  +	TotalPaid is not knowable until the loan reaches end of life
+
+* 	Removed loadID column which contains that loan application ID
+This left us with the following columns to explore and transform if needed:
+ 
+```{r echo=FALSE}
+cnames_start
+```
+
+
+## Section 4 - Exploring and Transforming the Data
+
+
+Relative to data transformation, there were 7 types of data in the dataset.
+
+* Data that was fine the way it was, no transformation required
+
+* Data that needed to have unused factor levels removed
+
+* Data that lent itself to a calculated or derived field
+  
+    + State was used to create a new column of Region; many of the states only had a few loans but I wanted to see if geography was a factor so I grouped the states by region
+
+* Data stored as categorical with factor levels would be better represented as a continuous dimension 
+
+    + labels like "year 2" for a factor level has less information content than the number 2 in column year because of how 2 relates to 1 and 3
+
+* Data that was skewed and needed a transformation
+
+    + There were two primary transformations that were used the log base 10, and n-root transformations.
+
+    + The n-root was used if the log transformation resulted in negative infinity values or it gave a better transformation as judged by the boxplot tails
+
+      + The "n"" in the n-root was picked to balance the upper and lower trails of the boxplot. 
+
+* Data that was skewed but also did not lend itself to being transformed because of a very small range (0-6)
+	
+* Data that had too many factor levels to be of use
+
+    + Employment had over 21k levels and was not going to be useful to the model. 
+
+Our data columns now look like this: 
+```{r echo=FALSE}
+cnames_end
+```
+
+
+## Section 5 - The Logistic Selection for Model for Accuracy & Profit  - Optimizing
+
+
+The data was divided into a train and test dataset with 80% of the records going for training and 20% for testing. All of the model performance accuracy and profit statistics were obtained using the test dataset. 
+
+Eight logistic models were built and compared to one another to see which was the best at selecting loans to approve and reject. Two grading criteria were used. 
+
+1) Lowest model AIC
+
+2) Highest accuracy at the 50% prediction value on the testing dataset
+
+The first six models were built using the step function in the forward, backward and both directions. Two models were selected from each direction. One model that produced the best accuracy, and one model that produced the lowest AIC.
+
+From these six models, the one produced by the backward and both directions were exactly the same so I discarded the two versions produced by the both direction. 
+
+Then I took the most accurate model and used it as the basis to create two second-order models, one for best accuracy and another one for lowest AIC.
+
+Next I needed to see how the models compared to each other in approving loans to maximize profit. 
+Assumptions:
+* Approving Bad loan cost: Total paid - $500 – loan amount (this can be a positive number or a profit).
+* Rejecting Good loan cost: Lost opportunity no monetary loss, the money is available to make another loan.
+* Profit for loans made: Total paid – loan amount - $500 * count(Bad loans)
+
+
+Below is a tabular summary of the models comparing accuracy and profit when threshold is allowed to move, the percent improvement over the current process and the AIC and BIC.
+
+Even the worst model produces 10 times better profit results than the current system does. Even after such a significant improvement, there is still more that can be done for profit maximization, the best model is far from perfect. It only captures 30% of the potential profit by granting bad loans that don't provide more income than expenses and rejecting profitable loans.
+
+To put the 30% into perspective, the current process was only capturing 2% of the available profit. The cost associated with making unprofitable bad loans negates significant profit. 
+
+Note:
+Max accuracy models don't always have the highest accuracy when the threshold is allowed to move away from .5 they were selected with.
+
+* fw means the model was created with the step method in the forward direction
+* bw means the model was created with the step method in the backward direction
+* sec means the model was created with the step method in both directions while looking for second order predictors
+* Rows with '_acc' indicate models with predictors chosen based on highest accuracy when the threshold cutoff point was held constant for all permutations of the step method creation process
+* Rows with '_aic' are the lowest AIC models created from the step method 
+
+```{r echo=FALSE, options(width=9999)}
+glance_matrix[,c('Acc Cutoff','Max Acc','Profit Cut','Max Profit','% Improved','% Perfect','AIC', 'BIC')]
+
+
+```
+
+
+The following is a graphical representation of how profitability is affected by changing the algorithm approval threshold. The graphs also shows the algorithm approval threshold to achieve the highest accuracy.
+
+Note: The highest accuracy is lower than the highest profit threshold for all of these models. Approving a few additional bad loans is made up by the profit from the additional good loans that are made.
+
+All graph y-axes are scaled so that 100% represents maximum profit for the most profitable model. This scaling allows the viewer to compare the profitability of each model to the best in class.
+
+The current process profit for the test dataset is 7% of the best model max profit, and matches the result of all models if we set the threshold to approve 100% of the loans.
+
+
+###  @@@@ Model Profitability vs Algorithm Approval Threshold @@@@
+```{r echo=FALSE, fig.width=8, fig.height=11}
+par(mfrow=c(3,3), mar=c(5,4,4,2))
+plot(1,axes = FALSE, ann = FALSE, col = "white" )
+plot(1,axes = FALSE, ann = FALSE, col = "white", main='Profitability vs Algorithm Approval Threshold' )
+legend('center', inset = c(-10,-10),title='legend',legend=c('Current Process Profit','Profit Profile','Accuracy Cutoff','Profit Cutoff','% Bad Loans Rejected','% Good Loans Rejected'), col=c('black','blue','red','green','darkmagenta','darkgreen'), lty=c(4,1,1,1,1,1), cex=1.25)
+
+plot(1,axes = FALSE, ann = FALSE, col = "white" )
+
+for(j in seq(1,6)){
+  # plot((profit_table[j,])/(max(profit_table))*100, type='l', col='blue', ylim=c(-10 ,100), xlab='Algorithm Approval Threshold', ylab='Percentage', main='Profitability vs Algorithm Approval Threshold' )
+    plot((profit_table[j,])/(max(profit_table))*100, type='l', col='blue', ylim=c(0 ,100), xlab='Approval Threshold', ylab='Percentage', main=rownames(glance_matrix)[j], xlim=c(5,95) )
+  
+  lines(x=seq(1,100),y= percentBadRej[j,]* 100,  col='darkmagenta')
+  lines(x=seq(1,100),y= percentGoodRej[j,]* 100,  col='darkgreen')
+  # abline(h= act_profit/ max(profit_table[j,])*100, col='black', lty=4)
+  abline(h= act_profit/ max(profit_table)*100, col='black', lty=4)
+  # abline(v=which.max(accuracy_table[j,]), col='red')
+  
+   # abline(v=which.max(profit_table[j,]), col='green')
+  x <- NULL
+  y <- NULL
+  x <- rep(which.max(accuracy_table[j,]),each = floor(profit_table[j,which.max(accuracy_table[j,])]/max(profit_table)*100))
+  y <- seq(1:floor(profit_table[j,which.max(accuracy_table[j,])]/max(profit_table)*100))
+  lines(x=x, y=y, col='red')
+  # abline(h=max(profit_table[j,])/ max(profit_table)*100, col='blue')
+  x <- NULL
+  y <- NULL
+  x <- seq(1,which.max(accuracy_table[j,]))
+  y <- rep((floor(profit_table[j,which.max(accuracy_table[j,])])/ max(profit_table))*100,each = which.max(accuracy_table[j,]))
+  lines(x=x, y=y, col='red')
+  # 
+  # j <- 1
+  # x <- NULL
+  # y <- NULL
+
+  # abline(v=which.max(profit_table[j,]), col='green')
+  x <- NULL
+  y <- NULL
+  x <- rep(which.max(profit_table[j,]),each = (max(profit_table[j,])/ max(profit_table))*100)
+  y <- seq(1:(max(profit_table[j,])/ max(profit_table)*100))
+  lines(x=x, y=y, col='green')
+  # abline(h=max(profit_table[j,])/ max(profit_table)*100, col='blue')
+  x <- NULL
+  y <- NULL
+  x <- seq(1,which.max(profit_table[j,]))
+  y <- rep(max(profit_table[j,])/ max(profit_table)*100,each = which.max(profit_table[j,]))
+  lines(x=x, y=y, col='green')
+}
+
+```
+
+
+Finally, here are two histograms showing the distribution of both good and bad loans versus algorithm score, with the mean value indicated by the red vertical line. Notice that even at very high threshold cutoff values there are still some bad loans that get approved. 
+
+
+```{r echo=FALSE, fig.width=8, fig.height=4}
+d_set <- test # to test the model
+par(mfrow=c(1,2), mar=c(5,4,4,2))
+
+hist(predprob[which(d_set$response == 'Good')] , main = 'Good Loans by Algorithm Score', xlab = 'Algorithm Score', xaxt='n' )
+axis(side=1, at=seq(0,1, .1), labels=seq(0.0,1.0,.1))
+abline(v=mean(predprob[which(d_set$response == 'Good')]), col='red')
+
+hist(predprob[which(d_set$response == 'Bad')], main = 'Bad Loans by Algorithm Score', xlab = 'Algorithm Score', xaxt='n')
+axis(side=1, at=seq(0,1, .1), labels=seq(0.0,1.0,.1))
+abline(v=mean(predprob[which(d_set$response == 'Bad')]), col='red')
+
+
+```
+
+## Section 6 - Results Summary
+
+Where should we place the cutoff and how will that impact the bank? 
+
+To maximize return on loaned money, we would want to place the automatic cutoff level at `r which.max(profit_table[6,])/100 `. 
+
+For this portfolio of loans, that would represent an accuracy of `r round(accuracy_table[6,which.max(profit_table[6,])],2)*100`% and a total profit of \$`r round(max(profit_table[6,])/1000000,2)`M which is an `r round(max(profit_table[6,])/act_profit,2)*100`% increase or an extra $`r round((max(profit_table[6,]) - act_profit)/1000000)`M in profit over what this portfolio of loans actually produced for the bank. 
+
+At the proposed threshold, the percent of bad loans rejected is `r round(percentBadRej[6,which.max(profit_table[6,])],2)*100 `%, and the percent of good loans accepted is `r round(1- percentGoodRej[6,which.max(profit_table[6,])],2)*100 `%. 
+
+
+While this is a significant improvement there is still room to get better, a perfect model that approved 100% of good loans and rejected 100% of bad loans would outperform this model by `r  round(perfect_profit/max(profit_table[6,]),2)*100`% or, to put another way, would produce an additional $`r  round((perfect_profit - max(profit_table[6,]))/1000000,2)`M of profit. 
+
+
+
