@@ -1,13 +1,19 @@
 Part 1:
-Files:
-Description:
+Files: IndexRunner.java, IndexThread.java, input
+Description: Create a program that uses threads to open n text files and then makes a list of all the unique words and which pages
+those words can be found on. After the map has been created save it to the output file
+
+
+
 
 
 
 ----------------------------------------------------------------------------------
 Part 2:
-Files:
-Description:
+Files:GlobalRunner.java, GlobalThread.java, input
+Description: Create a program that uses threads to open n text files and then makes a list of all the unique words and which pages
+those words can be found on. Then pass that information back to the Runner and have the Runner create a map of all words in all text files
+and indicate which pages the word can be found on for each file. Not all words will appear in all files. 
 
 
 
@@ -16,7 +22,3 @@ Description:
 
 
 
-----------------------------------------------------------------------------------
-Part 3:
-Files:
-Description:
