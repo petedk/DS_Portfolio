@@ -1,4 +1,4 @@
-The file wordIndex has more advanced examples 
+The file WordIndex has more advanced examples 
 
 -------------------------------------------------------------------------------------------------------
 RunnerCombos.java, MyComboThread.java, input.txt
