@@ -1,11 +1,31 @@
+a. Read in all words. A word is any consecutive sequence of letters,
+numbers, apostrophes, special symbols, etc. The only things that delimit
+words are a space, tab and newline (i.e. whitespace). In my sample files, I
+am using the default delimiters specified by the Scanner class. If you use
+something different, you may get different results. You should store the
+words into one of the following Collections: TreeSet, HashSet, TreeMap or
+HashMap. If you don’t, your code will likely run very slow. All words are
+case insensitive. For example, the words cat , Cat , CAT and cAT are all
+considered the same word. Punctuation and other symbols are not to be
+filtered out. Therefore, cat: and cat are two separate words (note the
+colon after the first cat).
+
+b. Along with reading in all of the words, remember which “page” the word
+was on. We will start counting from page 1.
+
+c. For each file, after you have read in all of the words, you should write out
+your word index to that files output file. You should write out each word
+that appears in the file and for each word that you write out, you must also
+write what page(s) that word appears on. You must write out the words in
+alphabetical order and only put 1 word per line. Assume the word cat
+appears on pages 4, 10 and 16, your output should be formatted in the
+following fashion:
+cat 4, 10, 16
+
 Part 1:
 Files: IndexRunner.java, IndexThread.java, input.zip
 Description: Create a program that uses threads to open n text files and then makes a list of all the unique words and which pages
 those words can be found on. After the map has been created save it to the output file
-
-
-
-
 
 
 ----------------------------------------------------------------------------------
@@ -15,7 +35,9 @@ Description: Create a program that uses threads to open n text files and then ma
 those words can be found on. Then pass that information back to the Runner and have the Runner create a map of all words in all text files
 and indicate which pages the word can be found on for each file. Not all words will appear in all files. 
 
-
+Sample output:
+Word, file1, file2, file3
+cat, 2:4:6, 3:5:7, 2:5:7
 
 
 
