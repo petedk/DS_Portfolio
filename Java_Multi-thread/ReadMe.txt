@@ -1,4 +1,6 @@
+The file wordIndex has more advanced examples 
 
+-------------------------------------------------------------------------------------------------------
 RunnerCombos.java, MyComboThread.java, input.txt
 
 You have a huge database of people and a long list of interests for each person. Maybe person A likes golf, tennis,
